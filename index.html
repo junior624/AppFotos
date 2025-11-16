@@ -101,10 +101,6 @@
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
   }
 
-  .btn-secondary {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  }
-
   #status {
     margin-top: 15px;
     font-weight: 600;
@@ -118,24 +114,6 @@
 
   .status-error {
     color: #ef4444;
-  }
-
-  .storage-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-
-  .storage-badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 15px 30px;
-    border-radius: 50px;
-    font-size: 1.2em;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
   }
 
   .section-title {
@@ -284,25 +262,6 @@
     color: white;
   }
 
-  /* Barra de armazenamento */
-  .storage-info-simple {
-    text-align: center;
-    padding: 20px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 15px;
-    color: white;
-  }
-
-  .storage-info-simple h3 {
-    font-size: 2em;
-    margin-bottom: 5px;
-  }
-
-  .storage-info-simple p {
-    font-size: 1em;
-    opacity: 0.9;
-  }
-
   .gallery-item img {
     width: 100%;
     height: 100%;
@@ -378,10 +337,6 @@
       gap: 12px;
     }
 
-    .storage-info {
-      flex-direction: column;
-    }
-
     .section-title {
       font-size: 1.5em;
     }
@@ -405,18 +360,9 @@
       <h3>Toque para selecionar uma foto</h3>
     </div>
 
-    <input type="file" id="fileInput" accept="image/*" capture="environment">
+    <input type="file" id="fileInput" accept="image/*">
     <button class="btn" onclick="uploadPhoto()">✨ Enviar Foto</button>
     <p id="status"></p>
-  </div>
-
-  <!-- Storage Card -->
-  <div class="card">
-    <h2 class="section-title">💾 Armazenamento</h2>
-    <div class="storage-info-simple">
-      <h3>1 GB</h3>
-      <p>Capacidade total</p>
-    </div>
   </div>
 
   <!-- Gallery Card -->
@@ -490,7 +436,6 @@ async function uploadPhoto() {
   showStatus('✅ Foto enviada com sucesso!', 'success');
   fileInput.value = '';
   loadGallery();
-  getStorageUsage();
 }
 
 /* ====================== GALERIA ====================== */
@@ -663,10 +608,6 @@ async function downloadCurrentPhoto() {
 /* ====================== DOWNLOAD DE FOTOS ====================== */
 async function downloadPhoto(url, fileName) {
   try {
-    // Incrementa contador
-    await incrementDownloadCount(fileName);
-
-    // Download da foto
     const response = await fetch(url);
     const blob = await response.blob();
     const urlBlob = window.URL.createObjectURL(blob);
@@ -678,9 +619,6 @@ async function downloadPhoto(url, fileName) {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(urlBlob);
-
-    // Atualiza a galeria para mostrar novo contador
-    loadGallery();
     
     showStatus('✅ Foto baixada com sucesso!', 'success');
   } catch (error) {
@@ -689,57 +627,7 @@ async function downloadPhoto(url, fileName) {
   }
 }
 
-/* ====================== CONTADOR DE DOWNLOADS ====================== */
-async function getDownloadCount(fileName) {
-  try {
-    const key = `download_count:${fileName}`;
-    const result = await window.storage.get(key, true);
-    return result ? parseInt(result.value) : 0;
-  } catch (error) {
-    return 0;
-  }
-}
-
-async function incrementDownloadCount(fileName) {
-  try {
-    const key = `download_count:${fileName}`;
-    const currentCount = await getDownloadCount(fileName);
-    const newCount = currentCount + 1;
-    await window.storage.set(key, newCount.toString(), true);
-  } catch (error) {
-    console.error('Erro ao incrementar contador:', error);
-  }
-}
-
-/* ====================== USO DO STORAGE ====================== */
-async function getStorageUsage() {
-  document.getElementById('storageUsed').innerText = 'Calculando...';
-
-  const { data, error } = await supabase
-    .storage
-    .from(bucketName)
-    .list("", { limit: 500 });
-
-  if (error) {
-    console.error(error);
-    document.getElementById('storageUsed').innerText = '❌ Erro ao calcular';
-    return;
-  }
-
-  let totalBytes = 0;
-
-  data.forEach(file => {
-    if (file.metadata?.size) {
-      totalBytes += file.metadata.size;
-    }
-  });
-
-  const mb = (totalBytes / (1024 * 1024)).toFixed(2);
-  document.getElementById('storageUsed').innerText = `${mb} MB usados`;
-}
-
-// Carrega dados ao iniciar 
-getStorageUsage();
+// Carrega galeria ao iniciar 
 loadGallery();
 </script>
 
